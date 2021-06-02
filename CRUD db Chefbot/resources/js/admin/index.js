@@ -1,0 +1,9 @@
+import './admin-user';
+import './profile-edit-profile';
+import './profile-edit-password';
+import './recipe';
+import './recipe-ing';
+import './ingredient-recipe';
+import './ingredient-cocktail';
+import './cocktail';
+import './cocktail-ing';
