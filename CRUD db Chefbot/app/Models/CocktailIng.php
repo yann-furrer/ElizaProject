@@ -27,4 +27,7 @@ class CocktailIng extends Model
     {
         return url('/admin/cocktail-ings/'.$this->getKey());
     }
+
+
+
 }
