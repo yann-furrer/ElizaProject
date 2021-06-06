@@ -3,7 +3,8 @@ import tweepy
 from tweepy.models import SearchResults
 import request
 from function import api, search, tweet
-
+import schedule
+import time
 
 
 
@@ -58,11 +59,13 @@ def execute(search, nb_tweet):
 
 
 
+def count():
+    print("execute")
+    search_result, nb_tweet = search()
+    execute(search_result, nb_tweet)
+schedule.every(10).seconds.do(count)
 
-# def start():
-#     stop = False
-#     while(not stop):
-search_result, nb_tweet = search()
-execute(search_result, nb_tweet)
-
-# start()
+while 1:
+    schedule.run_pending()
+    schedule.every(10).seconds.do(count)
+    time.sleep(1)
