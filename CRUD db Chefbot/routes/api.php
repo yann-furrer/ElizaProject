@@ -8,7 +8,7 @@ use App\Models\Recipe;
 use App\Models\RecipeIng;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+/* test version
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -30,18 +30,26 @@ Route::get('/test', function () {
 //Chemin api qui renvois les plats végatariens 
 Route::get('/get_veganfood/{foodlist}', function ($foodlist) {
 
-
     $array = explode("%", $foodlist);
 
-
     $request = IngredientRecipe::whereIn('name_food', $array)->pluck('id');
-
     $request2 = RecipeIng::whereIn('id_ingredient', $request)->pluck('id_recipe');
-    $request3 = Recipe::whereIn('id', $request2)->where('vegan', 1)->get();
+
+
+    //Sert à chercher la recette avec le plus de paramètre
+    $convert_order_request = array_count_values($request2->toArray());
+    $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
+    $res = array_keys($transform_array);
+
+    $request3 = Recipe::whereIn('id', $res)->where('vegan', 1)->get();
+
+
+  
     if (empty($request3[0])) {
-        return ['message' => "aucune recette végétarienne trouvé"];
+        $empty = array("name" => "acune recette trouvé");
+        return  response()->json($empty);
     } else {
-        return response()->json($request3);
+        return $request3;
     }
 });
 
@@ -59,9 +67,10 @@ Route::get('/get_noveganfood/{foodlist}', function ($foodlist) {
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
-
-    $request3 = Recipe::whereIn('id', $res)->where('vegan', 0)->get();
-
+    dump($request2);
+    dump($res);
+    $request3 = Recipe::whereIn('id', $res)->get();
+    dump($request3[0]);
 
   
     if (empty($request3[0])) {

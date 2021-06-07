@@ -11,16 +11,10 @@ import time
 
 
 
-#while_count = 0
-#nb_tweet = 0
+
 search_result ="vide"
 
 
-# def tweet(name, url, in_reply_to_status_id):
-#     auto_populate_reply_matadata = True
-#     status = name+"    "+url
-#     api.update_status(status, in_reply_to_status_id, auto_populate_reply_matadata)
-#     return "message envoye"
 
 
 
