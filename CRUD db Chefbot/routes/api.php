@@ -8,7 +8,7 @@ use App\Models\Recipe;
 use App\Models\RecipeIng;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-/* test version
+/* test version1.3
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -27,6 +27,8 @@ Route::get('/test', function () {
     return ['messge' => "bienvenue dans l'ap"];
 });
 
+
+
 //Chemin api qui renvois les plats végatariens 
 Route::get('/get_veganfood/{foodlist}', function ($foodlist) {
 
@@ -42,16 +44,25 @@ Route::get('/get_veganfood/{foodlist}', function ($foodlist) {
     $res = array_keys($transform_array);
 
     $request3 = Recipe::whereIn('id', $res)->where('vegan', 1)->get();
+    $transform = $request3->toArray();
+    array_multisort($res, $transform );
 
 
-  
-    if (empty($request3[0])) {
-        $empty = array("name" => "acune recette trouvé");
+    if (empty($transform[0])) {
+        $empty = array("name" => "acune recette trouvé dsl");
         return  response()->json($empty);
     } else {
-        return $request3;
+        return $transform;
     }
 });
+
+
+
+
+
+
+
+
 
 //Chemin api qui renvois les plats non végatariens 
 Route::get('/get_noveganfood/{foodlist}', function ($foodlist) {
@@ -61,23 +72,28 @@ Route::get('/get_noveganfood/{foodlist}', function ($foodlist) {
 
     $request = IngredientRecipe::whereIn('name_food', $array)->pluck('id');
     $request2 = RecipeIng::whereIn('id_ingredient', $request)->pluck('id_recipe');
-
-
+    
+    
     //Sert à chercher la recette avec le plus de paramètre
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
-    dump($request2);
-    dump($res);
-    $request3 = Recipe::whereIn('id', $res)->get();
-    dump($request3[0]);
+    
+    
+    $request3 = Recipe::whereIn('id', $res)->where("vegan", 0)->get();
+    
+    
+    $transform = $request3->toArray();
+    array_multisort($res, $transform );
 
-  
-    if (empty($request3[0])) {
+
+
+
+    if (empty($transform[0])) {
         $empty = array("name" => "acune recette trouvé");
         return  response()->json($empty);
     } else {
-        return $request3;
+        return $transform;
     }
 });
 
@@ -92,20 +108,21 @@ Route::get('/get_softdrink/{drinklist}', function ($drinklist) {
 
     $request2 = CocktailIng::whereIn('id_ingredient', $request)->pluck('id_cocktail');
 
-     //Sert à chercher la recette avec le plus de paramètre
-     $convert_order_request = array_count_values($request2->toArray());
-     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
-     $res = array_keys($transform_array);
- 
-     $request3 = Recipe::whereIn('id', $res)->where('vegan', 0)->get();
- 
- 
+    //Sert à chercher la recette avec le plus de paramètre
+    $convert_order_request = array_count_values($request2->toArray());
+    $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
+    $res = array_keys($transform_array);
+    $request3 = Recipe::whereIn('id', $res)->where('vegan', 0)->get();
 
-    dump($res);
-    if (empty($request3[0])) {
+    $transform = $request3->toArray();
+    array_multisort($res, $transform );
+    
+
+   
+    if (empty($transform[0])) {
         return ['message' => "aucun soft trouvé"];
     } else {
-        return response()->json($request3);
+        return response()->json($transform);
     }
 });
 
@@ -119,22 +136,30 @@ Route::get('/get_harddrink/{drinklist}', function ($drinklist) {
     $request = IngredientCocktail::whereIn('name_drink', $array)->pluck('id');
     $request2 = CocktailIng::whereIn('id_ingredient', $request)->get()->pluck('id_cocktail');
     
+    
     //Sert à chercher la recette avec le plus de paramètre
+
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
+    
+    $request3 = Cocktail::whereIn('id', $res)->where('alcool', 1)->get();
+    
+    $transform = $request3->toArray();
+    $count = sizeof($transform);
+    $result= array_slice($res,0,$count);
+   
+
+ 
+    array_multisort($result, $transform );
+    
    
 
     
-    
-    $request3 = Cocktail::whereIn('id', $res)->where('alcool', 1)->get();
-
-  
-
-    if (empty($request3[0])) {
+    if (empty($transform[0])) {
         return ['message' => "aucun cocktail trouvé"];
     } else {
-        return response()->json($request3);
+        return response()->json($transform);
     }
 });
 
@@ -156,10 +181,18 @@ Route::get('/get_botvegan/{foodlist}', function ($foodlist) {
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
-
-
+   
     $request3 = Recipe::whereIn('id', $res)->where('vegan', 1)->get();
-    if (empty($request3[0])) {
+
+    $transform = $request3->toArray();
+    $count = sizeof($transform);
+    $result= array_slice($res,0,$count);
+   
+
+ 
+    array_multisort($result, $transform );
+
+    if (empty($transform[0])) {
         $foo = array(
             'botnation' => 'v1',
             'reply' =>
@@ -187,12 +220,12 @@ Route::get('/get_botvegan/{foodlist}', function ($foodlist) {
                 0 =>
                 array(
                     'type' => 'text',
-                    'value' => $request3[0]['name'],
+                    'value' => $transform[0]['name'],
                 ),
                 1 =>
                 array(
                     'type' => 'image',
-                    'value' => $request3[0]['img'],
+                    'value' => $transform[0]['img'],
                 ),
                 2 =>
                 array(
@@ -200,7 +233,7 @@ Route::get('/get_botvegan/{foodlist}', function ($foodlist) {
                     3 =>
                     array(
                         'type' => 'image',
-                        'value' => 'temps de preparation: ' . $request3[0]['time'] . " mn",
+                        'value' => 'temps de preparation: ' . $transform[0]['time'] . " mn",
                     ),
                 ),
 
@@ -212,10 +245,10 @@ Route::get('/get_botvegan/{foodlist}', function ($foodlist) {
                     array(
                         0 =>
                         array(
-                            'label' => 'recette de ' . $request3[0]['name'],
+                            'label' => 'recette de ' . $transform[0]['name'],
                             'type' => 'web_url',
                             'ratio' => 'full',
-                            'url' => $request3[0]['url'],
+                            'url' => $transform[0]['url'],
                         ),
 
                     ),
@@ -246,9 +279,18 @@ Route::get('/get_botnovegan/{foodlist}', function ($foodlist) {
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
-    
+
     $request3 = Recipe::whereIn('id', $res)->where('vegan', 0)->get();
-    if (empty($request3[0])) {
+
+    $transform = $request3->toArray();
+    $count = sizeof($transform);
+    $result= array_slice($res,0,$count);
+   
+
+ 
+    array_multisort($result, $transform );
+
+    if (empty($transform[0])) {
 
         $foo = array(
             'botnation' => 'v1',
@@ -277,12 +319,12 @@ Route::get('/get_botnovegan/{foodlist}', function ($foodlist) {
                 0 =>
                 array(
                     'type' => 'text',
-                    'value' => $request3[0]['name'],
+                    'value' => $transform[0]['name'],
                 ),
                 1 =>
                 array(
                     'type' => 'image',
-                    'value' => $request3[0]['img'],
+                    'value' => $transform[0]['img'],
                 ),
                 2 =>
                 array(
@@ -290,7 +332,7 @@ Route::get('/get_botnovegan/{foodlist}', function ($foodlist) {
                     3 =>
                     array(
                         'type' => 'image',
-                        'value' => 'temps de preparation: ' . $request3[0]['time'] . " mn",
+                        'value' => 'temps de preparation: ' . $transform[0]['time'] . " mn",
                     ),
                 ),
 
@@ -303,10 +345,10 @@ Route::get('/get_botnovegan/{foodlist}', function ($foodlist) {
                     array(
                         0 =>
                         array(
-                            'label' => 'recette de ' . $request3[0]['name'],
+                            'label' => 'recette de ' . $transform[0]['name'],
                             'type' => 'web_url',
                             'ratio' => 'full',
-                            'url' => $request3[0]['url'],
+                            'url' => $transform[0]['url'],
                         ),
 
                     ),
@@ -335,8 +377,17 @@ Route::get('/get_softdrink/{drinklist}', function ($drinklist) {
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
-    
+   
     $request3 = Cocktail::whereIn('id', $res)->where('alcool', 0)->get();
+
+    $transform = $request3->toArray();
+    $count = sizeof($transform);
+    $result= array_slice($res,0,$count);
+   
+
+ 
+    array_multisort($result, $transform );
+
     if (empty($request3[0])) {
 
         $foo = array(
@@ -402,24 +453,36 @@ Route::get('/get_softdrink/{drinklist}', function ($drinklist) {
 
 //Chemin d'api de botnation pour les recettes avec alcool
 Route::get('/get_botharddrink/{drinklist}', function ($drinklist) {
-    $array = explode("%", $drinklist);
+
+
+   
+
+    // preg_match('/([0-9])\w+/','',$drinklist);
+
+    $array = explode(" ", $drinklist);
 
     $request = IngredientCocktail::whereIn('name_drink', $array)->pluck('id');
     $request2 = CocktailIng::whereIn('id_ingredient', $request)->get()->pluck('id_cocktail');
-    
+
     //Sert à chercher la recette avec le plus de paramètre
     $convert_order_request = array_count_values($request2->toArray());
     $transform_array = collect($convert_order_request)->sort()->reverse()->toArray();
     $res = array_keys($transform_array);
+
+
+
+
+    $request3 = Cocktail::whereIn('id', $res)->where('alcool', 1)->get();
+
+    $transform = $request3->toArray();
+    $count = sizeof($transform);
+    $result= array_slice($res,0,$count);
    
 
+ 
+    array_multisort($result, $transform );
     
-    
-    $request3 = Cocktail::whereIn('id', $res)->where('alcool', 1)->get()->pluck('name');
-    dump($convert_order_request);
-    dump($res);
-    dump($request3);
-    if (empty($request3[0])) {
+    if (empty($transform[0])) {
 
         $foo = array(
             'botnation' => 'v1',
@@ -448,14 +511,13 @@ Route::get('/get_botharddrink/{drinklist}', function ($drinklist) {
                 0 =>
                 array(
                     'type' => 'text',
-                    // 'value' => "$request3[0]['name']",
-                    'value' => "name",
+                    'value' => $transform[0]['name'],
+
                 ),
                 1 =>
                 array(
                     'type' => 'image',
-                    'value' => "IMG",
-                    // 'value' => $request3[0]['img'],
+                    'value' => $transform[0]['img'],
                 ),
 
 
@@ -467,11 +529,10 @@ Route::get('/get_botharddrink/{drinklist}', function ($drinklist) {
                     array(
                         0 =>
                         array(
-                            'label' => "ok",
-                            // 'label' => 'preparation de ' . $request3[0]['name'],
+                            'label' => 'preparation de ' . $transform[0]['name'],
                             'type' => 'web_url',
                             'ratio' => 'full',
-                            // 'url' => $request3[0]['url'],
+                            'url' => $transform[0]['url'],
                         ),
 
                     ),
@@ -484,4 +545,3 @@ Route::get('/get_botharddrink/{drinklist}', function ($drinklist) {
         return response()->json($foo);
     }
 });
-//FIN DES CHEMINS D'API BOTNATION
